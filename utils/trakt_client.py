@@ -1,6 +1,7 @@
 import logging
 import sys
 import time
+import os
 from datetime import datetime
 
 from utils.trakt_api_client import TraktApiClient
@@ -14,7 +15,7 @@ class TraktClient:
     def __init__(self, config):
         self.config = config
         self.traktApiClient = TraktApiClient(config)
-
+    
     def authenticate(self):
         print("Checking access and refresh tokens")
         if self.config.access_token is None:
@@ -27,9 +28,8 @@ class TraktClient:
             if status_code != 200:
                 print("Error getting device code for authentication, status code : %s" % (status_code))
                 sys.exit(1)
-            print("Please connect to : %s\nFill the following code when asked : %s\n\n\n" % (data["verification_url"], data["user_code"]))
-            device_code = data["device_code"]
-            print('Device Code: %s' % (device_code))
+            device_code=data["device_code"]
+            self.write_codes(data["verification_url"], data["user_code"], device_code)
 
             #TODO: poll the trakt api each seconds to fetch the token once the user has signed in
 
@@ -56,6 +56,18 @@ class TraktClient:
             print("Tokens found, already connected")
 
         return True
+    
+    def write_codes(self, verification_url, user_code, device_code):
+        text_for_user="Please connect to : %s\nFill the following code when asked : %s\n\n\n 'Device Code: %s'" % (verification_url, user_code,device_code)
+        print(text_for_user)
+        
+        """Write codes to file"""
+        self.config.set_value('Trakt',"verification_url",verification_url)
+        self.config.set_value('Trakt',"user_code",user_code)
+        self.config.set_value('Trakt',"device_code",device_code)
+        print("INFO: Writing codes inside the config file...")
+        self.config.write_settings()
+
     #TODO
     def startScrobble(self, episode: TraktEpisode = None, show: TraktShow = None, movie: TraktMovie = None):
         if show is not None:

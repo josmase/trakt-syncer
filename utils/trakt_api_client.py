@@ -8,7 +8,11 @@ class TraktApiClient:
         print("unimplemented: GET request to the trakt api")
 
     def post(self, url: str, data: any):
-        print("POST request to the trakt api")
+        print("POST request to the trakt api with url: " + url)
+        if self.config and self.config.access_token:
+            print("BearerToken: "+self.config.access_token)
+            print("ApiKey: "+ self.config.client_id)
+        
         result = requests.post(
             url,
             headers={
@@ -24,3 +28,6 @@ class TraktApiClient:
 
     def delete(self):
         print("unimplemented: DELETE request to the trakt api")
+
+
+
